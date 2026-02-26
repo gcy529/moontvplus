@@ -130,6 +130,7 @@ export const UserMenu: React.FC = () => {
   const [searchTraditionalToSimplified, setSearchTraditionalToSimplified] = useState(false);
   const [exactSearch, setExactSearch] = useState(true);
   const [maxConcurrentDownloads, setMaxConcurrentDownloads] = useState(6);
+  const [downloadThreadsPerTask, setDownloadThreadsPerTask] = useState(6);
 
   // 邮件通知设置
   const [userEmail, setUserEmail] = useState('');
@@ -161,6 +162,7 @@ export const UserMenu: React.FC = () => {
   // TMDB 图片设置
   const [tmdbImageBaseUrl, setTmdbImageBaseUrl] = useState('https://image.tmdb.org');
   const [isUsageSectionOpen, setIsUsageSectionOpen] = useState(false);
+  const [isDownloadSectionOpen, setIsDownloadSectionOpen] = useState(false);
   const [isBufferSectionOpen, setIsBufferSectionOpen] = useState(false);
   const [isDanmakuSectionOpen, setIsDanmakuSectionOpen] = useState(false);
   const [isHomepageSectionOpen, setIsHomepageSectionOpen] = useState(false);
@@ -562,6 +564,12 @@ export const UserMenu: React.FC = () => {
       if (savedMaxConcurrentDownloads !== null) {
         setMaxConcurrentDownloads(Number(savedMaxConcurrentDownloads));
       }
+
+      // 加载单任务线程数设置
+      const savedDownloadThreadsPerTask = localStorage.getItem('downloadThreadsPerTask');
+      if (savedDownloadThreadsPerTask !== null) {
+        setDownloadThreadsPerTask(Number(savedDownloadThreadsPerTask));
+      }
     }
   }, []);
 
@@ -914,6 +922,13 @@ export const UserMenu: React.FC = () => {
     setMaxConcurrentDownloads(value);
     if (typeof window !== 'undefined') {
       localStorage.setItem('maxConcurrentDownloads', String(value));
+    }
+  };
+
+  const handleDownloadThreadsPerTaskChange = (value: number) => {
+    setDownloadThreadsPerTask(value);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('downloadThreadsPerTask', String(value));
     }
   };
 
@@ -2034,10 +2049,30 @@ export const UserMenu: React.FC = () => {
                       </div>
                     </label>
                   </div>
+                </div>
+              )}
+            </div>
 
-                  {/* 分割线 */}
-                  <div className='border-t border-gray-200 dark:border-gray-700'></div>
-
+            {/* 下载设置 */}
+            <div className='border border-gray-200 dark:border-gray-700 rounded-lg overflow-visible'>
+              <button
+                onClick={() => setIsDownloadSectionOpen(!isDownloadSectionOpen)}
+                className='w-full px-3 py-2.5 md:px-4 md:py-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors flex items-center justify-between'
+              >
+                <div className='flex items-center gap-2'>
+                  <Download className='w-5 h-5 text-gray-600 dark:text-gray-400' />
+                  <h3 className='text-base font-semibold text-gray-800 dark:text-gray-200'>
+                    下载设置
+                  </h3>
+                </div>
+                {isDownloadSectionOpen ? (
+                  <ChevronUp className='w-5 h-5 text-gray-600 dark:text-gray-400' />
+                ) : (
+                  <ChevronDown className='w-5 h-5 text-gray-600 dark:text-gray-400' />
+                )}
+              </button>
+              {isDownloadSectionOpen && (
+                <div className='p-3 md:p-4 space-y-4 md:space-y-6'>
                   {/* 最大同时下载限制 */}
                   <div className='space-y-2'>
                     <div>
@@ -2094,6 +2129,72 @@ export const UserMenu: React.FC = () => {
                         className={`px-2 py-0.5 rounded ${maxConcurrentDownloads === 10 ? 'bg-green-500 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                       >
                         10个
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 单任务线程数 */}
+                  <div className='space-y-2'>
+                    <div>
+                      <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                        单任务线程数
+                      </h4>
+                      <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                        控制每个下载任务使用的线程数量，线程越多下载越快但占用资源越多
+                      </p>
+                    </div>
+                    <div className='flex items-center justify-between'>
+                      <span className='text-xs text-gray-600 dark:text-gray-400'>
+                        线程数量
+                      </span>
+                      <span className='text-xs font-medium text-gray-700 dark:text-gray-300'>
+                        {downloadThreadsPerTask}个
+                      </span>
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <input
+                        type='range'
+                        min='1'
+                        max='32'
+                        step='1'
+                        value={downloadThreadsPerTask}
+                        onChange={(e) => handleDownloadThreadsPerTaskChange(Number(e.target.value))}
+                        className='flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700'
+                        style={{
+                          background: `linear-gradient(to right, #10b981 0%, #10b981 ${((downloadThreadsPerTask - 1) / (32 - 1)) * 100}%, #e5e7eb ${((downloadThreadsPerTask - 1) / (32 - 1)) * 100}%, #e5e7eb 100%)`
+                        }}
+                      />
+                    </div>
+                    <div className='flex justify-between text-xs text-gray-500 dark:text-gray-400'>
+                      <button
+                        onClick={() => handleDownloadThreadsPerTaskChange(1)}
+                        className={`px-2 py-0.5 rounded ${downloadThreadsPerTask === 1 ? 'bg-green-500 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                      >
+                        1个
+                      </button>
+                      <button
+                        onClick={() => handleDownloadThreadsPerTaskChange(4)}
+                        className={`px-2 py-0.5 rounded ${downloadThreadsPerTask === 4 ? 'bg-green-500 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                      >
+                        4个
+                      </button>
+                      <button
+                        onClick={() => handleDownloadThreadsPerTaskChange(8)}
+                        className={`px-2 py-0.5 rounded ${downloadThreadsPerTask === 8 ? 'bg-green-500 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                      >
+                        8个
+                      </button>
+                      <button
+                        onClick={() => handleDownloadThreadsPerTaskChange(16)}
+                        className={`px-2 py-0.5 rounded ${downloadThreadsPerTask === 16 ? 'bg-green-500 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                      >
+                        16个
+                      </button>
+                      <button
+                        onClick={() => handleDownloadThreadsPerTaskChange(32)}
+                        className={`px-2 py-0.5 rounded ${downloadThreadsPerTask === 32 ? 'bg-green-500 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                      >
+                        32个
                       </button>
                     </div>
                   </div>

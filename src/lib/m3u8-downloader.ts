@@ -347,8 +347,13 @@ export class M3U8Downloader {
       }
     };
 
-    // 并发下载 6 个片段
-    const concurrency = Math.min(6, task.rangeDownload.targetSegment - task.finishNum);
+    // 从localStorage读取单任务线程数设置，默认6个
+    const threadsPerTask = typeof window !== 'undefined'
+      ? Number(localStorage.getItem('downloadThreadsPerTask') || 6)
+      : 6;
+
+    // 并发下载片段
+    const concurrency = Math.min(threadsPerTask, task.rangeDownload.targetSegment - task.finishNum);
     for (let i = 0; i < concurrency; i++) {
       download();
     }
