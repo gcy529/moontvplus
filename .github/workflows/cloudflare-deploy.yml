@@ -1,11 +1,10 @@
 name: Deploy to Cloudflare
 
-  on:
--   workflow_dispatch:
-+   push:
-+     branches:
-+       - main  # 或你的主分支名称（请确认是 main 还是 master）
-+   workflow_dispatch:
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
